@@ -32,6 +32,7 @@ class MoviesActivity : Activity(), MoviesView {
             intent.putExtra("poster", it.image)
             startActivity(intent)
         }
+
     }
 
     private var textWatcher: TextWatcher? = null
