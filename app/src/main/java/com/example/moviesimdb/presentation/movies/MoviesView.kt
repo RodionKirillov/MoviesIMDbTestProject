@@ -1,18 +1,15 @@
 package com.example.moviesimdb.presentation.movies
 
-import com.example.moviesimdb.domain.models.Movie
+import com.example.moviesimdb.ui.models.MoviesState
 
 interface MoviesView {
-    fun showPlaceholderMessage(isVisible: Boolean)
 
-    fun showMoviesList(isVisible: Boolean)
+    // Методы, меняющие внешний вид экрана
 
-    fun showProgressBar(isVisible: Boolean)
+    fun render(state: MoviesState)
 
-    fun changePlaceholderText(newPlaceholderText: String)
+    // Методы «одноразовых событий»
 
-    fun updateMoviesList(newMoviesList: List<Movie>)
-
-    fun showMessage(message: String)
+    fun showToast(additionalMessage: String)
 
 }
