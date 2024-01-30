@@ -8,22 +8,16 @@ import com.example.moviesimdb.util.Creator
 import com.example.moviesimdb.domain.api.MoviesInteractor
 import com.example.moviesimdb.domain.models.Movie
 import com.example.moviesimdb.ui.models.MoviesState
+import moxy.MvpPresenter
 
 class MoviesSearchPresenter(
     private val context: Context,
-) {
+): MvpPresenter<MoviesView>() {
 
-    private var view: MoviesView? = null
-    private var state: MoviesState? = null
     private var latestSearchText: String? = null
 
-    fun attachView(view: MoviesView) {
-        this.view = view
-        state?.let { view.render(it) }
-    }
-
-    fun detachView() {
-        this.view = null
+    override fun onDestroy() {
+        handler.removeCallbacksAndMessages(SEARCH_DEBOUNCE_DELAY)
     }
 
     companion object {
@@ -38,10 +32,6 @@ class MoviesSearchPresenter(
     private val searchRunnable = Runnable {
         val newSearchText = lastSearchText ?: ""
         searchRequest(newSearchText)
-    }
-
-    fun onDestroy() {
-        handler.removeCallbacks(searchRunnable)
     }
 
     fun searchDebounce(changedText: String) {
@@ -75,7 +65,7 @@ class MoviesSearchPresenter(
                                         errorMessage = context.getString(R.string.something_went_wrong),
                                     )
                                 )
-                                view?.showToast(errorMessage)
+                                viewState.showToast(errorMessage)
                             }
 
                             movies.isEmpty() -> {
@@ -100,9 +90,7 @@ class MoviesSearchPresenter(
             })
         }
     }
-
     private fun renderState(state: MoviesState) {
-        this.state = state
-        this.view?.render(state)
+        viewState.render(state)
     }
 }

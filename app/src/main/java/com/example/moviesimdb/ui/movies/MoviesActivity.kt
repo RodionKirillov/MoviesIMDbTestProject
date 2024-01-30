@@ -22,8 +22,11 @@ import com.example.moviesimdb.presentation.movies.MoviesView
 import com.example.moviesimdb.ui.models.MoviesState
 import com.example.moviesimdb.util.Creator
 import com.example.moviesimdb.ui.poster.PosterActivity
+import moxy.MvpActivity
+import moxy.presenter.InjectPresenter
+import moxy.presenter.ProvidePresenter
 
-class MoviesActivity : Activity(), MoviesView {
+class MoviesActivity : MvpActivity(), MoviesView {
 
     companion object {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
@@ -43,7 +46,15 @@ class MoviesActivity : Activity(), MoviesView {
 
     private val handler = Handler(Looper.getMainLooper())
 
-    private var moviesSearchPresenter: MoviesSearchPresenter? = null
+    @InjectPresenter
+    lateinit var moviesSearchPresenter: MoviesSearchPresenter
+
+    @ProvidePresenter
+    fun providePresenter(): MoviesSearchPresenter {
+        return Creator.provideMoviesSearchPresenter(
+            context = this.applicationContext,
+        )
+    }
 
     private lateinit var queryInput: EditText
     private lateinit var placeholderMessage: TextView
@@ -53,18 +64,6 @@ class MoviesActivity : Activity(), MoviesView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movies)
-
-        moviesSearchPresenter = (this.application as? MoviesApplication)?.moviesSearchPresenter
-
-        if (moviesSearchPresenter == null) {
-            moviesSearchPresenter = Creator.provideMoviesSearchPresenter(
-                context = this.applicationContext,
-            )
-            (this.application as? MoviesApplication)?.moviesSearchPresenter = moviesSearchPresenter
-        }
-
-        moviesSearchPresenter?.attachView(this)
-
 
         placeholderMessage = findViewById(R.id.placeholderMessage)
         queryInput = findViewById(R.id.queryInput)
@@ -89,42 +88,6 @@ class MoviesActivity : Activity(), MoviesView {
         }
         textWatcher?.let { queryInput.addTextChangedListener(it) }
 
-    }
-
-    override fun onStart() {
-        super.onStart()
-        moviesSearchPresenter?.attachView(this)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        moviesSearchPresenter?.attachView(this)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        textWatcher?.let { queryInput.removeTextChangedListener(it) }
-        moviesSearchPresenter?.detachView()
-        moviesSearchPresenter?.onDestroy()
-
-        if (isFinishing()) {
-            (this.application as? MoviesApplication)?.moviesSearchPresenter = null
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        moviesSearchPresenter?.detachView()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        moviesSearchPresenter?.detachView()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        moviesSearchPresenter?.detachView()
     }
 
     private fun clickDebounce(): Boolean {
