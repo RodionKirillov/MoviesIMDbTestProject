@@ -38,6 +38,8 @@ android {
 
 dependencies {
 
+    implementation ("androidx.core:core-ktx:1.12.0")
+
     implementation ("com.github.moxy-community:moxy:2.2.2")
     implementation ("com.github.moxy-community:moxy-android:2.2.2")
     kapt ("com.github.moxy-community:moxy-compiler:2.2.2")

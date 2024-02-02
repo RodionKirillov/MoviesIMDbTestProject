@@ -1,6 +1,5 @@
 package com.example.moviesimdb.ui.movies
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -12,12 +11,13 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.moviesimdb.MoviesApplication
 import com.example.moviesimdb.R
 import com.example.moviesimdb.domain.models.Movie
-import com.example.moviesimdb.presentation.movies.MoviesSearchPresenter
+import com.example.moviesimdb.presentation.movies.MoviesSearchViewModel
 import com.example.moviesimdb.presentation.movies.MoviesView
 import com.example.moviesimdb.ui.models.MoviesState
 import com.example.moviesimdb.util.Creator
@@ -26,7 +26,7 @@ import moxy.MvpActivity
 import moxy.presenter.InjectPresenter
 import moxy.presenter.ProvidePresenter
 
-class MoviesActivity : MvpActivity(), MoviesView {
+class MoviesActivity : ComponentActivity() {
 
     companion object {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
@@ -40,31 +40,23 @@ class MoviesActivity : MvpActivity(), MoviesView {
         }
     }
 
-    private var textWatcher: TextWatcher? = null
+    private lateinit var queryInput: EditText
+    private lateinit var placeholderMessage: TextView
+    private lateinit var moviesList: RecyclerView
+    private lateinit var progressBar: ProgressBar
+    private lateinit var textWatcher: TextWatcher
 
     private var isClickAllowed = true
 
     private val handler = Handler(Looper.getMainLooper())
 
-    @InjectPresenter
-    lateinit var moviesSearchPresenter: MoviesSearchPresenter
-
-    @ProvidePresenter
-    fun providePresenter(): MoviesSearchPresenter {
-        return Creator.provideMoviesSearchPresenter(
-            context = this.applicationContext,
-        )
-    }
-
-    private lateinit var queryInput: EditText
-    private lateinit var placeholderMessage: TextView
-    private lateinit var moviesList: RecyclerView
-    private lateinit var progressBar: ProgressBar
+    private lateinit var viewModel: MoviesSearchViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movies)
-        moviesSearchPresenter = providePresenter()
+
+        viewModel = ViewModelProvider(this, MoviesSearchViewModel.getViewModelFactory())[MoviesSearchViewModel::class.java]
 
         placeholderMessage = findViewById(R.id.placeholderMessage)
         queryInput = findViewById(R.id.queryInput)
@@ -79,7 +71,7 @@ class MoviesActivity : MvpActivity(), MoviesView {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                moviesSearchPresenter.searchDebounce(
+                viewModel.searchDebounce(
                     changedText = s?.toString() ?: ""
                 )
             }
@@ -89,33 +81,40 @@ class MoviesActivity : MvpActivity(), MoviesView {
         }
         textWatcher?.let { queryInput.addTextChangedListener(it) }
 
-    }
-
-    private fun clickDebounce(): Boolean {
-        val current = isClickAllowed
-        if (isClickAllowed) {
-            isClickAllowed = false
-            handler.postDelayed({ isClickAllowed = true }, CLICK_DEBOUNCE_DELAY)
+        viewModel.observeState().observe(this) {
+            render(it)
         }
-        return current
+
+        viewModel.observeShowToast().observe(this) {
+            showToast(it)
+        }
     }
 
-    override fun render(state: MoviesState) {
+    override fun onDestroy() {
+        super.onDestroy()
+        textWatcher?.let { queryInput.removeTextChangedListener(it) }
+    }
+
+    private fun showToast(additionalMessage: String) {
+        Toast.makeText(this, additionalMessage, Toast.LENGTH_LONG).show()
+    }
+
+    private fun render(state: MoviesState) {
         when (state) {
-            is MoviesState.Loading -> showLoading()
             is MoviesState.Content -> showContent(state.movies)
-            is MoviesState.Error -> showError(state.errorMessage)
             is MoviesState.Empty -> showEmpty(state.message)
+            is MoviesState.Error -> showError(state.errorMessage)
+            is MoviesState.Loading -> showLoading()
         }
     }
 
-    fun showLoading() {
+    private fun showLoading() {
         moviesList.visibility = View.GONE
         placeholderMessage.visibility = View.GONE
         progressBar.visibility = View.VISIBLE
     }
 
-    fun showError(errorMessage: String) {
+    private fun showError(errorMessage: String) {
         moviesList.visibility = View.GONE
         placeholderMessage.visibility = View.VISIBLE
         progressBar.visibility = View.GONE
@@ -123,11 +122,11 @@ class MoviesActivity : MvpActivity(), MoviesView {
         placeholderMessage.text = errorMessage
     }
 
-    fun showEmpty(emptyMessage: String) {
+    private fun showEmpty(emptyMessage: String) {
         showError(emptyMessage)
     }
 
-    fun showContent(movies: List<Movie>) {
+    private fun showContent(movies: List<Movie>) {
         moviesList.visibility = View.VISIBLE
         placeholderMessage.visibility = View.GONE
         progressBar.visibility = View.GONE
@@ -137,13 +136,13 @@ class MoviesActivity : MvpActivity(), MoviesView {
         adapter.notifyDataSetChanged()
     }
 
-
-    override fun showToast(additionalMessage: String) {
-        Toast.makeText(
-            this,
-            additionalMessage,
-            Toast.LENGTH_LONG
-        ).show()
+    private fun clickDebounce(): Boolean {
+        val current = isClickAllowed
+        if (isClickAllowed) {
+            isClickAllowed = false
+            handler.postDelayed({ isClickAllowed = true }, CLICK_DEBOUNCE_DELAY)
+        }
+        return current
     }
 
 }
