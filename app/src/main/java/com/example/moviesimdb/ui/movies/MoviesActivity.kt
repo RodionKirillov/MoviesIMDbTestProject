@@ -79,7 +79,7 @@ class MoviesActivity : MvpActivity(), MoviesView {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                moviesSearchPresenter?.searchDebounce(
+                moviesSearchPresenter.searchDebounce(
                     changedText = s?.toString() ?: ""
                 )
             }

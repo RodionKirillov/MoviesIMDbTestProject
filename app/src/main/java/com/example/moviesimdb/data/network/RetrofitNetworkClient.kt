@@ -12,7 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class RetrofitNetworkClient(private val context: Context) : NetworkClient {
 
-    private val imdbBaseUrl = "https://imdb-api.com"
+    private val imdbBaseUrl = "https://tv-api.com"
 
     private val retrofit = Retrofit.Builder()
         .baseUrl(imdbBaseUrl)
