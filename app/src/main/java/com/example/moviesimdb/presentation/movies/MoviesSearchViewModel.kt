@@ -2,11 +2,13 @@ package com.example.moviesimdb.presentation.movies
 
 import android.app.Application
 import android.content.Context
+import android.content.res.loader.ResourcesProvider
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -23,27 +25,35 @@ import moxy.MvpPresenter
 
 
 
-class MoviesSearchViewModel(application: Application) : AndroidViewModel(application) {
+class MoviesSearchViewModel(private val moviesInteractor: MoviesInteractor, val context: Context) : ViewModel() {
 
     companion object {
         private const val SEARCH_DEBOUNCE_DELAY = 2000L
         private val SEARCH_REQUEST_TOKEN = Any()
 
-        fun getViewModelFactory(): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                MoviesSearchViewModel(this[APPLICATION_KEY] as Application)
-            }
-        }
     }
 
-    private val moviesInteractor = Creator.provideMoviesInteractor(getApplication())
+
     private val handler = Handler(Looper.getMainLooper())
 
     private val stateLiveData = MutableLiveData<MoviesState>()
-    fun observeState(): LiveData<MoviesState> = stateLiveData
+    fun observeState(): LiveData<MoviesState> = mediatorStateLiveData
 
-    private val showToast = SingleLiveEvent<String>()
-    fun observeShowToast(): LiveData<String> = showToast
+    private val showToast = SingleLiveEvent<String?>()
+    fun observeShowToast(): SingleLiveEvent<String?> = showToast
+
+    private val mediatorStateLiveData = MediatorLiveData<MoviesState>().also { liveData ->
+        // 1
+        liveData.addSource(stateLiveData) { movieState ->
+            liveData.value = when (movieState) {
+                // 2
+                is MoviesState.Content -> MoviesState.Content(movieState.movies.sortedByDescending { it.isFavorite })
+                is MoviesState.Empty -> movieState
+                is MoviesState.Error -> movieState
+                is MoviesState.Loading -> movieState
+            }
+        }
+    }
 
     private var latestSearchText: String? = null
 
@@ -84,7 +94,7 @@ class MoviesSearchViewModel(application: Application) : AndroidViewModel(applica
                         errorMessage != null -> {
                             renderState(
                                 MoviesState.Error(
-                                    errorMessage = getApplication<Application>().getString(R.string.something_went_wrong),
+                                    errorMessage = context.getString(R.string.something_went_wrong),
                                 )
                             )
                             showToast.postValue(errorMessage)
@@ -93,7 +103,7 @@ class MoviesSearchViewModel(application: Application) : AndroidViewModel(applica
                         movies.isEmpty() -> {
                             renderState(
                                 MoviesState.Empty(
-                                    message = getApplication<Application>().getString(R.string.nothing_found),
+                                    message = context.getString(R.string.nothing_found),
                                 )
                             )
                         }
@@ -114,5 +124,34 @@ class MoviesSearchViewModel(application: Application) : AndroidViewModel(applica
 
     private fun renderState(state: MoviesState) {
         stateLiveData.postValue(state)
+    }
+
+    fun toggleFavorite(movie: Movie) {
+        if (movie.isFavorite) {
+            moviesInteractor.removeMovieFromFavorites(movie)
+        } else {
+            moviesInteractor.addMovieToFavorites(movie)
+        }
+        updateMovieContent(movie.id, movie.copy(isFavorite = !movie.isFavorite))
+    }
+
+    private fun updateMovieContent(movieId: String, newMovie: Movie) {
+        val currentState = stateLiveData.value
+
+        // 2
+        if (currentState is MoviesState.Content) {
+            // 3
+            val movieIndex = currentState.movies.indexOfFirst { it.id == movieId }
+
+            // 4
+            if (movieIndex != -1) {
+                // 5
+                stateLiveData.value = MoviesState.Content(
+                    currentState.movies.toMutableList().also {
+                        it[movieIndex] = newMovie
+                    }
+                )
+            }
+        }
     }
 }
