@@ -4,6 +4,8 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.example.moviesimdb.data.NetworkClient
+import com.example.moviesimdb.data.dto.MovieDetailsResponse
+import com.example.moviesimdb.data.dto.MoviesIdRequest
 import com.example.moviesimdb.data.dto.MoviesSearchRequest
 import com.example.moviesimdb.data.dto.Response
 import retrofit2.Retrofit
@@ -19,11 +21,16 @@ class RetrofitNetworkClient(
         if (isConnected() == false) {
             return Response().apply { resultCode = -1 }
         }
-        if (dto !is MoviesSearchRequest) {
+        if (dto !is MoviesSearchRequest && dto !is MoviesIdRequest) {
             return Response().apply { resultCode = 400 }
         }
 
-        val response = imDbApiService.searchMovies(dto.expression).execute()
+        val response = if (dto is MoviesSearchRequest) {
+            imDbApiService.searchMovies(dto.expression).execute()
+        } else {
+            imDbApiService.getMovieDetails((dto as MoviesIdRequest).movieId).execute()
+        }
+
         val body = response.body()
         return if (body != null) {
             body.apply { resultCode = response.code() }

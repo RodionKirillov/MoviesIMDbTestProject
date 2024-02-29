@@ -12,19 +12,13 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.moviesimdb.R
 import com.example.moviesimdb.domain.models.Movie
 import com.example.moviesimdb.presentation.movies.MoviesSearchViewModel
-import com.example.moviesimdb.presentation.movies.MoviesView
 import com.example.moviesimdb.ui.models.MoviesState
-import com.example.moviesimdb.util.Creator
-import com.example.moviesimdb.ui.poster.PosterActivity
-import moxy.MvpActivity
-import moxy.presenter.InjectPresenter
-import moxy.presenter.ProvidePresenter
+import com.example.moviesimdb.ui.details.DetailsActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MoviesActivity : ComponentActivity() {
@@ -37,8 +31,9 @@ class MoviesActivity : ComponentActivity() {
         object : MoviesAdapter.MovieClickListener {
             override fun onMovieClick(movie: Movie) {
                 if (clickDebounce()) {
-                    val intent = Intent(this@MoviesActivity, PosterActivity::class.java)
+                    val intent = Intent(this@MoviesActivity, DetailsActivity::class.java)
                     intent.putExtra("poster", movie.image)
+                    intent.putExtra("id", movie.id)
                     startActivity(intent)
                 }
             }

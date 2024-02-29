@@ -1,28 +1,18 @@
 package com.example.moviesimdb.presentation.movies
 
-import android.app.Application
 import android.content.Context
-import android.content.res.loader.ResourcesProvider
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.moviesimdb.R
-import com.example.moviesimdb.util.Creator
 import com.example.moviesimdb.domain.api.MoviesInteractor
 import com.example.moviesimdb.domain.models.Movie
 import com.example.moviesimdb.ui.models.MoviesState
 import com.example.moviesimdb.util.SingleLiveEvent
-import moxy.MvpPresenter
-
 
 
 class MoviesSearchViewModel(private val moviesInteractor: MoviesInteractor, val context: Context) : ViewModel() {

@@ -1,10 +1,13 @@
 package com.example.moviesimdb.data
 
+import com.example.moviesimdb.data.dto.MovieDetailsResponse
+import com.example.moviesimdb.data.dto.MoviesIdRequest
 import com.example.moviesimdb.data.dto.MoviesSearchRequest
 import com.example.moviesimdb.data.dto.MoviesSearchResponse
 import com.example.moviesimdb.data.memory.LocalStorage
 import com.example.moviesimdb.domain.api.MoviesRepository
 import com.example.moviesimdb.domain.models.Movie
+import com.example.moviesimdb.domain.models.MovieDetails
 import com.example.moviesimdb.util.Resource
 
 class MoviesRepositoryImpl(
@@ -36,6 +39,25 @@ class MoviesRepositoryImpl(
 
             else -> {
                 Resource.Error("Ошибка сервера")
+            }
+        }
+    }
+
+    override fun getMovieDetails(movieId: String): Resource<MovieDetails> {
+        val response = networkClient.doRequest(MoviesIdRequest(movieId))
+        return when (response.resultCode) {
+            -1 -> {
+                Resource.Error("Проверьте подключение к интернету")
+            }
+            200 -> {
+                with(response as MovieDetailsResponse) {
+                    Resource.Success(MovieDetails(id, title, imDbRating, year,
+                        countries, genres, directors, writers, stars, plot))
+                }
+            }
+            else -> {
+                Resource.Error("Ошибка сервера")
+
             }
         }
     }
