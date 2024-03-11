@@ -1,14 +1,15 @@
 package com.example.moviesimdb.ui.details.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import com.example.moviesimdb.databinding.FragmentDetailsBinding
 import com.example.moviesimdb.domain.models.MovieDetails
 import com.example.moviesimdb.presentation.poster.AboutViewModel
+import com.example.moviesimdb.ui.cast.MoviesCastActivity
 import com.example.moviesimdb.ui.models.DetailsState
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
@@ -16,6 +17,7 @@ import org.koin.core.parameter.parametersOf
 class DetailsFragment : Fragment() {
 
     private lateinit var binding: FragmentDetailsBinding
+    private var movieDetails = ""
 
     private val viewModel: AboutViewModel by viewModel {
         parametersOf(requireArguments().getString(DETAILS, ""))
@@ -35,6 +37,15 @@ class DetailsFragment : Fragment() {
 
         viewModel.observeState().observe(viewLifecycleOwner) {
             render(it)
+        }
+
+        binding.showCastButton.setOnClickListener {
+            startActivity(
+                MoviesCastActivity.newInstance(
+                    requireContext(),
+                    movieDetails
+                )
+            )
         }
     }
 
@@ -70,6 +81,7 @@ class DetailsFragment : Fragment() {
     companion object {
         private const val DETAILS = "DETAILS"
         fun newInstance(movieId: String) = DetailsFragment().apply {
+            movieDetails = movieId
             arguments = Bundle().apply {
                 putString(DETAILS, movieId)
             }

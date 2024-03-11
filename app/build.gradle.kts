@@ -41,6 +41,10 @@ android {
 }
 
 dependencies {
+    // AdapterDelegates
+    implementation ("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
+    // AdapterDelegates Подключаем модуль для работы с ViewBinding
+    implementation ("com.hannesdorfmann:adapterdelegates4-kotlin-dsl-viewbinding:4.3.2")
     //Fragment
     implementation ("androidx.fragment:fragment-ktx:1.6.2")
     //ViewPager2
@@ -54,6 +58,7 @@ dependencies {
 
     implementation ("com.github.moxy-community:moxy:2.2.2")
     implementation ("com.github.moxy-community:moxy-android:2.2.2")
+    implementation("androidx.activity:activity:1.8.0")
     kapt ("com.github.moxy-community:moxy-compiler:2.2.2")
 
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")

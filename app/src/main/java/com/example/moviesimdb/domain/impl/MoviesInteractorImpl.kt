@@ -6,7 +6,9 @@ import com.example.moviesimdb.domain.models.Movie
 import com.example.moviesimdb.util.Resource
 import java.util.concurrent.Executors
 
-class MoviesInteractorImpl(private val repository: MoviesRepository) : MoviesInteractor {
+class MoviesInteractorImpl(
+    private val repository: MoviesRepository
+) : MoviesInteractor {
 
     private val executor = Executors.newCachedThreadPool()
 
@@ -26,6 +28,15 @@ class MoviesInteractorImpl(private val repository: MoviesRepository) : MoviesInt
                is Resource.Error -> {consumer.consume(null, resource.message)}
            }
        }
+    }
+
+    override fun getMovieFullCast(movieId: String, consumer: MoviesInteractor.MoviesFullCastConsumer) {
+        executor.execute {
+            when(val resource = repository.getMovieCast(movieId)) {
+                is Resource.Success -> {consumer.consume(resource.data,null)}
+                is Resource.Error -> {consumer.consume(null, resource.message)}
+            }
+        }
     }
 
     override fun addMovieToFavorites(movie: Movie) {
