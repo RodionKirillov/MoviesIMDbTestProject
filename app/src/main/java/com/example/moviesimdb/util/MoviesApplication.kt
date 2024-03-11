@@ -1,4 +1,4 @@
-package com.example.moviesimdb
+package com.example.moviesimdb.util
 
 import android.app.Application
 import com.example.moviesimdb.di.dataModule

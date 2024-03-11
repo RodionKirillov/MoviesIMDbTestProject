@@ -4,12 +4,10 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import com.example.moviesimdb.data.NetworkClient
-import com.example.moviesimdb.data.dto.MovieDetailsResponse
+import com.example.moviesimdb.data.dto.MovieCastRequest
 import com.example.moviesimdb.data.dto.MoviesIdRequest
 import com.example.moviesimdb.data.dto.MoviesSearchRequest
 import com.example.moviesimdb.data.dto.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 
 class RetrofitNetworkClient(
@@ -21,14 +19,18 @@ class RetrofitNetworkClient(
         if (isConnected() == false) {
             return Response().apply { resultCode = -1 }
         }
-        if (dto !is MoviesSearchRequest && dto !is MoviesIdRequest) {
+        if (dto !is MoviesSearchRequest && dto !is MoviesIdRequest && dto !is MovieCastRequest) {
             return Response().apply { resultCode = 400 }
         }
 
         val response = if (dto is MoviesSearchRequest) {
             imDbApiService.searchMovies(dto.expression).execute()
         } else {
-            imDbApiService.getMovieDetails((dto as MoviesIdRequest).movieId).execute()
+            if (dto is MoviesIdRequest) {
+                imDbApiService.getMovieDetails(dto.movieId).execute()
+            } else {
+                imDbApiService.getFullCast((dto as MovieCastRequest).movieId).execute()
+            }
         }
 
         val body = response.body()
