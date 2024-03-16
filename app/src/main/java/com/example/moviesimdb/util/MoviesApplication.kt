@@ -3,6 +3,7 @@ package com.example.moviesimdb.util
 import android.app.Application
 import com.example.moviesimdb.di.dataModule
 import com.example.moviesimdb.di.interactorModule
+import com.example.moviesimdb.di.navigationModule
 import com.example.moviesimdb.di.repositoryModule
 import com.example.moviesimdb.di.viewModelModule
 import com.example.moviesimdb.presentation.movies.MoviesSearchViewModel
@@ -17,7 +18,13 @@ class MoviesApplication : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@MoviesApplication)
-            modules(dataModule, interactorModule, repositoryModule, viewModelModule)
+            modules(
+                dataModule,
+                interactorModule,
+                repositoryModule,
+                viewModelModule,
+                navigationModule
+            )
         }
     }
 }

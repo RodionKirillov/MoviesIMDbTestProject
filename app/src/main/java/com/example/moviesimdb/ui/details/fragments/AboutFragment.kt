@@ -9,13 +9,17 @@ import androidx.fragment.app.commit
 import com.example.moviesimdb.R
 import com.example.moviesimdb.databinding.FragmentDetailsBinding
 import com.example.moviesimdb.domain.models.MovieDetails
+import com.example.moviesimdb.navigation.Router
 import com.example.moviesimdb.presentation.poster.AboutViewModel
 import com.example.moviesimdb.ui.cast.MoviesCastFragment
 import com.example.moviesimdb.ui.models.DetailsState
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
 
 class AboutFragment : Fragment() {
+
+    private val router: Router by inject()
 
     private lateinit var binding: FragmentDetailsBinding
     private lateinit var movieDetails: String
@@ -43,14 +47,14 @@ class AboutFragment : Fragment() {
         }
 
         binding.showCastButton.setOnClickListener {
-            parentFragment?.parentFragmentManager?.commit {
-                replace(
-                    R.id.rootFragmentContainerView,
-                    MoviesCastFragment.newInstance(movieDetails),
-                    MoviesCastFragment.TAG
+
+            // Переходим на следующий экран с помощью Router
+            router.openFragment(
+                MoviesCastFragment.newInstance(
+                    movieId = requireArguments().getString(movieDetails).orEmpty()
                 )
-                addToBackStack(MoviesCastFragment.TAG)
-            }
+            )
+
         }
     }
 

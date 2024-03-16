@@ -15,13 +15,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moviesimdb.R
 import com.example.moviesimdb.databinding.FragmentMoviesBinding
 import com.example.moviesimdb.domain.models.Movie
+import com.example.moviesimdb.navigation.Router
 import com.example.moviesimdb.presentation.movies.MoviesSearchViewModel
 import com.example.moviesimdb.ui.details.fragments.DetailsFragment
 //import com.example.moviesimdb.ui.details.DetailsActivity
 import com.example.moviesimdb.ui.models.MoviesState
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MoviesFragment: Fragment() {
+
+    private val router: Router by inject()
 
     private lateinit var binding: FragmentMoviesBinding
     private lateinit var textWatcher: TextWatcher
@@ -34,14 +38,15 @@ class MoviesFragment: Fragment() {
         object : MoviesAdapter.MovieClickListener {
             override fun onMovieClick(movie: Movie) {
                 if (clickDebounce()) {
-                    parentFragmentManager.commit {
-                        replace(
-                            R.id.rootFragmentContainerView,
-                            DetailsFragment.newInstance(movie.id, movie.image),
-                            DetailsFragment.TAG
+
+                    // Переходим на следующий экран с помощью Router
+                    router.openFragment(
+                        DetailsFragment.newInstance(
+                            movieId = movie.id,
+                            posterUrl = movie.image
                         )
-                        addToBackStack(DetailsFragment.TAG)
-                    }
+                    )
+
                 }
             }
 
