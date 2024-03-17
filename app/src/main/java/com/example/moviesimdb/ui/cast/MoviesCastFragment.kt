@@ -88,11 +88,9 @@ class MoviesCastFragment : Fragment() {
         adapter.notifyDataSetChanged()
     }
     companion object {
-        const val TAG = "MoviesCastFragment"
         private const val ARGS_MOVIE_ID = "movie_id"
 
-        fun newInstance(movieId: String) = MoviesCastFragment().apply {
-            arguments = bundleOf(ARGS_MOVIE_ID to movieId)
-        }
+        fun createArgs(movieId: String): Bundle =
+            bundleOf(ARGS_MOVIE_ID to movieId)
     }
 }

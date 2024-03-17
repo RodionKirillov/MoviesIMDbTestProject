@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.moviesimdb.R
 import com.example.moviesimdb.databinding.FragmentMoviesBinding
@@ -30,23 +31,10 @@ class MoviesFragment : Fragment() {
         object : MoviesAdapter.MovieClickListener {
             override fun onMovieClick(movie: Movie) {
                 if (clickDebounce()) {
-                    // Навигируемся на следующий экран
-                    parentFragmentManager.commit {
-                        replace(
-                            // Указали, в каком контейнере работаем
-                            R.id.rootFragmentContainerView,
-                            // Создали фрагмент
-                            DetailsFragment.newInstance(
-                                movieId = movie.id,
-                                posterUrl = movie.image
-                            ),
-                            // Указали тег фрагмента
-                            DetailsFragment.TAG
+                    findNavController().navigate(
+                        R.id.action_moviesFragment_to_detailsFragment,
+                        DetailsFragment.createArgs(movie.id, movie.image)
                         )
-
-                        // Добавляем фрагмент в Back Stack
-                        addToBackStack(DetailsFragment.TAG)
-                    }
                 }
             }
 

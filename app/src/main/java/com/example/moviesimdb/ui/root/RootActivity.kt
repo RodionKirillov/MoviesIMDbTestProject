@@ -18,11 +18,5 @@ class RootActivity : AppCompatActivity() {
         setContentView(R.layout.activity_root)
         binding = ActivityRootBinding.inflate(layoutInflater)
         binding.root
-
-        if (savedInstanceState == null) {
-            supportFragmentManager.commit {
-                add(R.id.rootFragmentContainerView, MoviesFragment())
-            }
-        }
     }
 }
