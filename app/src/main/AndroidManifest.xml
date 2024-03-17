@@ -17,13 +17,7 @@
         android:theme="@style/Theme.MoviesIMDb"
         tools:targetApi="31">
         <activity
-            android:name=".ui.cast.MoviesCastActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.details.DetailsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.movies.MoviesActivity"
+            android:name=".ui.root.RootActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,6 +25,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.cast.MoviesCastFragment"
+            android:exported="false" />
+        <activity
+            android:name=".ui.details.fragments.DetailsFragment"
+            android:exported="false" />
+        <activity
+            android:name=".ui.movies.MoviesFragment"
+            android:exported="true" />
     </application>
 
 </manifest>
