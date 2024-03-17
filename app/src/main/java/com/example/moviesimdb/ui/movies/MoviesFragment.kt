@@ -6,22 +6,26 @@ import android.os.Handler
 import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.moviesimdb.R
+import com.example.moviesimdb.databinding.ActivityMoviesBinding
 import com.example.moviesimdb.domain.models.Movie
 import com.example.moviesimdb.presentation.movies.MoviesSearchViewModel
 import com.example.moviesimdb.ui.models.MoviesState
 import com.example.moviesimdb.ui.details.DetailsActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class MoviesActivity : ComponentActivity() {
+class MoviesFragment : Fragment() {
 
     companion object {
         private const val CLICK_DEBOUNCE_DELAY = 1000L
@@ -31,7 +35,7 @@ class MoviesActivity : ComponentActivity() {
         object : MoviesAdapter.MovieClickListener {
             override fun onMovieClick(movie: Movie) {
                 if (clickDebounce()) {
-                    val intent = Intent(this@MoviesActivity, DetailsActivity::class.java)
+                    val intent = Intent(requireContext(), DetailsActivity::class.java)
                     intent.putExtra("poster", movie.image)
                     intent.putExtra("id", movie.id)
                     startActivity(intent)
@@ -43,11 +47,9 @@ class MoviesActivity : ComponentActivity() {
             }
         }
     )
+    private var _binding: ActivityMoviesBinding? = null
+    private val binding get() = _binding!!
 
-    private lateinit var queryInput: EditText
-    private lateinit var placeholderMessage: TextView
-    private lateinit var moviesList: RecyclerView
-    private lateinit var progressBar: ProgressBar
     private lateinit var textWatcher: TextWatcher
 
     private var isClickAllowed = true
@@ -56,17 +58,21 @@ class MoviesActivity : ComponentActivity() {
 
     private val viewModel by viewModel<MoviesSearchViewModel>()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_movies)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = ActivityMoviesBinding.inflate(layoutInflater)
+        return binding.root
+    }
 
-        placeholderMessage = findViewById(R.id.placeholderMessage)
-        queryInput = findViewById(R.id.queryInput)
-        moviesList = findViewById(R.id.locations)
-        progressBar = findViewById(R.id.progressBar)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        moviesList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        moviesList.adapter = adapter
+
+        binding.locations.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        binding.locations.adapter = adapter
 
         textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -81,13 +87,13 @@ class MoviesActivity : ComponentActivity() {
             override fun afterTextChanged(s: Editable?) {
             }
         }
-        textWatcher?.let { queryInput.addTextChangedListener(it) }
+        textWatcher?.let { binding.queryInput.addTextChangedListener(it) }
 
-        viewModel.observeState().observe(this) {
+        viewModel.observeState().observe(viewLifecycleOwner) {
             render(it)
         }
 
-        viewModel.observeShowToast().observe(this) {
+        viewModel.observeShowToast().observe(viewLifecycleOwner) {
             if (it != null) {
                 showToast(it)
             }
@@ -96,11 +102,11 @@ class MoviesActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        textWatcher?.let { queryInput.removeTextChangedListener(it) }
+        textWatcher?.let { binding.queryInput.removeTextChangedListener(it) }
     }
 
     private fun showToast(additionalMessage: String) {
-        Toast.makeText(this, additionalMessage, Toast.LENGTH_LONG).show()
+        Toast.makeText(requireContext(), additionalMessage, Toast.LENGTH_LONG).show()
     }
 
     private fun render(state: MoviesState) {
@@ -113,17 +119,17 @@ class MoviesActivity : ComponentActivity() {
     }
 
     private fun showLoading() {
-        moviesList.visibility = View.GONE
-        placeholderMessage.visibility = View.GONE
-        progressBar.visibility = View.VISIBLE
+        binding.locations.visibility = View.GONE
+        binding.placeholderMessage.visibility = View.GONE
+        binding.progressBar.visibility = View.VISIBLE
     }
 
     private fun showError(errorMessage: String) {
-        moviesList.visibility = View.GONE
-        placeholderMessage.visibility = View.VISIBLE
-        progressBar.visibility = View.GONE
+        binding.locations.visibility = View.GONE
+        binding.placeholderMessage.visibility = View.VISIBLE
+        binding.progressBar.visibility = View.GONE
 
-        placeholderMessage.text = errorMessage
+        binding.placeholderMessage.text = errorMessage
     }
 
     private fun showEmpty(emptyMessage: String) {
@@ -131,9 +137,9 @@ class MoviesActivity : ComponentActivity() {
     }
 
     private fun showContent(movies: List<Movie>) {
-        moviesList.visibility = View.VISIBLE
-        placeholderMessage.visibility = View.GONE
-        progressBar.visibility = View.GONE
+        binding.locations.visibility = View.VISIBLE
+        binding.placeholderMessage.visibility = View.GONE
+        binding.progressBar.visibility = View.GONE
 
         adapter.movies.clear()
         adapter.movies.addAll(movies)
