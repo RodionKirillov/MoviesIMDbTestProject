@@ -26,10 +26,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.cast.MoviesCastActivity"
+            android:name=".ui.cast.MoviesCastFragment"
             android:exported="false" />
         <activity
-            android:name=".ui.details.DetailsActivity"
+            android:name=".ui.details.fragments.DetailsFragment"
             android:exported="false" />
         <activity
             android:name=".ui.movies.MoviesFragment"

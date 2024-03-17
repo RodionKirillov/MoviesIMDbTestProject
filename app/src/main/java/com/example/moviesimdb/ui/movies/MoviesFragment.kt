@@ -1,6 +1,5 @@
 package com.example.moviesimdb.ui.movies
 
-import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -9,20 +8,16 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.moviesimdb.R
-import com.example.moviesimdb.databinding.ActivityMoviesBinding
+import com.example.moviesimdb.databinding.FragmentMoviesBinding
 import com.example.moviesimdb.domain.models.Movie
 import com.example.moviesimdb.presentation.movies.MoviesSearchViewModel
+import com.example.moviesimdb.ui.details.fragments.DetailsFragment
 import com.example.moviesimdb.ui.models.MoviesState
-import com.example.moviesimdb.ui.details.DetailsActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MoviesFragment : Fragment() {
@@ -35,10 +30,23 @@ class MoviesFragment : Fragment() {
         object : MoviesAdapter.MovieClickListener {
             override fun onMovieClick(movie: Movie) {
                 if (clickDebounce()) {
-                    val intent = Intent(requireContext(), DetailsActivity::class.java)
-                    intent.putExtra("poster", movie.image)
-                    intent.putExtra("id", movie.id)
-                    startActivity(intent)
+                    // Навигируемся на следующий экран
+                    parentFragmentManager.commit {
+                        replace(
+                            // Указали, в каком контейнере работаем
+                            R.id.rootFragmentContainerView,
+                            // Создали фрагмент
+                            DetailsFragment.newInstance(
+                                movieId = movie.id,
+                                posterUrl = movie.image
+                            ),
+                            // Указали тег фрагмента
+                            DetailsFragment.TAG
+                        )
+
+                        // Добавляем фрагмент в Back Stack
+                        addToBackStack(DetailsFragment.TAG)
+                    }
                 }
             }
 
@@ -47,7 +55,7 @@ class MoviesFragment : Fragment() {
             }
         }
     )
-    private var _binding: ActivityMoviesBinding? = null
+    private var _binding: FragmentMoviesBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var textWatcher: TextWatcher
@@ -63,7 +71,7 @@ class MoviesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = ActivityMoviesBinding.inflate(layoutInflater)
+        _binding = FragmentMoviesBinding.inflate(layoutInflater)
         return binding.root
     }
 
