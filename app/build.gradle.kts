@@ -41,6 +41,10 @@ android {
 }
 
 dependencies {
+    //Jetpack Navigation Component
+    implementation ("androidx.navigation:navigation-fragment-ktx:2.7.7")
+    implementation ("androidx.navigation:navigation-ui-ktx:2.7.7")
+    implementation ("androidx.fragment:fragment-ktx:1.6.2")
     // AdapterDelegates
     implementation ("com.hannesdorfmann:adapterdelegates4-kotlin-dsl:4.3.2")
     // AdapterDelegates Подключаем модуль для работы с ViewBinding

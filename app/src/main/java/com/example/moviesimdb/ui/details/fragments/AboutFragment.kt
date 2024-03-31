@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
+import androidx.navigation.fragment.findNavController
 import com.example.moviesimdb.R
 import com.example.moviesimdb.databinding.FragmentAboutBinding
 import com.example.moviesimdb.domain.models.MovieDetails
@@ -41,14 +42,19 @@ class AboutFragment : Fragment() {
         }
 
         binding.showCastButton.setOnClickListener {
-            parentFragment?.parentFragmentManager?.commit {
-                replace(
-                    R.id.rootFragmentContainerView,
-                    MoviesCastFragment.newInstance(movieDetails),
-                    MoviesCastFragment.TAG
+            findNavController().navigate(
+                R.id.action_detailsFragment_to_moviesCastFragment,
+                MoviesCastFragment.createArgs(movieDetails)
                 )
-                addToBackStack(MoviesCastFragment.TAG)
-            }
+
+//            parentFragment?.parentFragmentManager?.commit {
+//                replace(
+//                    R.id.rootFragmentContainerView,
+//                    MoviesCastFragment.newInstance(movieDetails),
+//                    MoviesCastFragment.TAG
+//                )
+//                addToBackStack(MoviesCastFragment.TAG)
+//            }
         }
     }
 
