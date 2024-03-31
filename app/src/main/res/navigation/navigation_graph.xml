@@ -28,4 +28,14 @@
             android:id="@+id/action_detailsFragment_to_moviesCastFragment"
             app:destination="@id/moviesCastFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/namesFragment"
+        android:name="com.example.moviesimdb.ui.name.NamesFragment"
+        android:label="fragment_names"
+        tools:layout="@layout/fragment_names" />
+    <fragment
+        android:id="@+id/infoFragment"
+        android:name="com.example.moviesimdb.ui.info.InfoFragment"
+        android:label="fragment_info"
+        tools:layout="@layout/fragment_info" />
 </navigation>

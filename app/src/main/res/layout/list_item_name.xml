@@ -10,13 +10,14 @@
     <ImageView
         android:id="@+id/cover"
         android:layout_width="120dp"
-        android:layout_height="180dp"
-
-        android:scaleType="centerCrop" />
+        android:layout_height="120dp"
+        android:scaleType="centerCrop"
+        tools:src="@drawable/ic_launcher_background" />
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
         android:orientation="vertical">
 
         <TextView
@@ -39,13 +40,6 @@
             android:textSize="16sp"
             android:textStyle="italic"
             tools:text="AAAAAAAAAAAAAAAAAA" />
-
-        <Button
-            android:id="@+id/favorite"
-            android:layout_margin="10dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Favorite" />
     </LinearLayout>
 
 </LinearLayout>

@@ -7,32 +7,33 @@ import com.example.moviesimdb.data.NetworkClient
 import com.example.moviesimdb.data.dto.MovieCastRequest
 import com.example.moviesimdb.data.dto.MoviesIdRequest
 import com.example.moviesimdb.data.dto.MoviesSearchRequest
+import com.example.moviesimdb.data.dto.NamesSearchRequest
 import com.example.moviesimdb.data.dto.Response
 
 
 class RetrofitNetworkClient(
-    private val imDbApiService: IMDbApiService,
-    private val context: Context
+    private val imdbService: IMDbApiService,
+    private val context: Context,
 ) : NetworkClient {
 
     override fun doRequest(dto: Any): Response {
         if (isConnected() == false) {
             return Response().apply { resultCode = -1 }
         }
-        if (dto !is MoviesSearchRequest && dto !is MoviesIdRequest && dto !is MovieCastRequest) {
+
+        if ((dto !is MoviesSearchRequest)
+            && (dto !is MoviesIdRequest)
+            && (dto !is MovieCastRequest)
+            && (dto !is NamesSearchRequest)) {
             return Response().apply { resultCode = 400 }
         }
 
-        val response = if (dto is MoviesSearchRequest) {
-            imDbApiService.searchMovies(dto.expression).execute()
-        } else {
-            if (dto is MoviesIdRequest) {
-                imDbApiService.getMovieDetails(dto.movieId).execute()
-            } else {
-                imDbApiService.getFullCast((dto as MovieCastRequest).movieId).execute()
-            }
+        val response = when (dto) {
+            is NamesSearchRequest -> imdbService.searchNames(dto.expression).execute()
+            is MoviesSearchRequest -> imdbService.searchMovies(dto.expression).execute()
+            is MoviesIdRequest -> imdbService.getMovieDetails(dto.movieId).execute()
+            else -> imdbService.getFullCast((dto as MovieCastRequest).movieId).execute()
         }
-
         val body = response.body()
         return if (body != null) {
             body.apply { resultCode = response.code() }

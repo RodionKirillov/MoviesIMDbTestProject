@@ -1,17 +1,20 @@
 package com.example.moviesimdb.data
 
 import com.example.moviesimdb.data.converters.MovieCastConverter
+import com.example.moviesimdb.data.dto.MovieCastRequest
 import com.example.moviesimdb.data.dto.MovieCastResponse
 import com.example.moviesimdb.data.dto.MovieDetailsResponse
-import com.example.moviesimdb.data.dto.MovieCastRequest
 import com.example.moviesimdb.data.dto.MoviesIdRequest
 import com.example.moviesimdb.data.dto.MoviesSearchRequest
 import com.example.moviesimdb.data.dto.MoviesSearchResponse
+import com.example.moviesimdb.data.dto.NamesSearchRequest
+import com.example.moviesimdb.data.dto.NamesSearchResponse
 import com.example.moviesimdb.data.memory.LocalStorage
 import com.example.moviesimdb.domain.api.MoviesRepository
 import com.example.moviesimdb.domain.models.Movie
-import com.example.moviesimdb.domain.models.MovieDetails
 import com.example.moviesimdb.domain.models.MovieCast
+import com.example.moviesimdb.domain.models.MovieDetails
+import com.example.moviesimdb.domain.models.Result
 import com.example.moviesimdb.util.Resource
 
 class MoviesRepositoryImpl(
@@ -84,6 +87,31 @@ class MoviesRepositoryImpl(
                 Resource.Success(
                     data = movieCastConverter.convert(response as MovieCastResponse)
                 )
+            }
+
+            else -> {
+                Resource.Error("Ошибка сервера")
+            }
+        }
+    }
+
+    override fun searchName(expression: String): Resource<List<Result>> {
+        val response = networkClient.doRequest(NamesSearchRequest(expression))
+        return when (response.resultCode) {
+            -1 -> {
+                Resource.Error("Проверьте подключение к интернету")
+            }
+
+            200 -> {
+                Resource.Success((response as NamesSearchResponse).results.map {
+                    Result(
+                        description = it.description,
+                        id = it.id,
+                        image = it.image,
+                        resultType = it.resultType,
+                        title = it.title
+                    )
+                })
             }
 
             else -> {
