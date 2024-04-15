@@ -3,9 +3,11 @@ package com.example.moviesimdb.presentation.poster
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.moviesimdb.domain.api.MoviesInteractor
 import com.example.moviesimdb.domain.models.MovieDetails
 import com.example.moviesimdb.ui.models.DetailsState
+import kotlinx.coroutines.launch
 
 class AboutViewModel(
     private val movieId: String,
@@ -13,18 +15,17 @@ class AboutViewModel(
 ) : ViewModel() {
 
     init {
-        moviesInteractor.getMovieDetails(
-            movieId,
-            object : MoviesInteractor.MoviesDetailsConsumer {
+        viewModelScope.launch {
+            moviesInteractor.getMovieDetails(movieId)
+                .collect { pair ->
 
-                override fun consume(movieDetails: MovieDetails?, errorMessage: String?) {
-                    if (movieDetails != null) {
-                        renderState(DetailsState.Content(movieDetails))
+                    if (pair.first != null) {
+                        renderState(DetailsState.Content(pair.first!!))
                     } else {
-                        renderState(DetailsState.Error(errorMessage ?: "Что-то поошло не так"))
+                        renderState(DetailsState.Error(pair.second ?: "Что-то поошло не так"))
                     }
                 }
-            })
+        }
     }
 
     private val stateLiveData = MutableLiveData<DetailsState>()

@@ -6,11 +6,13 @@ import android.os.SystemClock
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.moviesimdb.domain.api.MoviesInteractor
 import com.example.moviesimdb.domain.models.Result
 import com.example.moviesimdb.ui.models.NameState
+import kotlinx.coroutines.launch
 
-class NameSearchViewModel(private val interactor: MoviesInteractor): ViewModel() {
+class NameSearchViewModel(private val interactor: MoviesInteractor) : ViewModel() {
 
     companion object {
         private const val SEARCH_DEBOUNCE_DELAY = 2000L
@@ -21,7 +23,7 @@ class NameSearchViewModel(private val interactor: MoviesInteractor): ViewModel()
     private val handler = Handler(Looper.getMainLooper())
 
     private val stateLiveData = MutableLiveData<NameState>()
-    fun observeState():LiveData<NameState> = stateLiveData
+    fun observeState(): LiveData<NameState> = stateLiveData
 
     private var latestSearchText: String? = null
 
@@ -29,7 +31,7 @@ class NameSearchViewModel(private val interactor: MoviesInteractor): ViewModel()
         handler.removeCallbacksAndMessages(SEARCH_REQUEST_TOKEN)
     }
 
-    fun searchDebounce(changedText: String){
+    fun searchDebounce(changedText: String) {
         if (latestSearchText == changedText) {
             return
         }
@@ -37,7 +39,7 @@ class NameSearchViewModel(private val interactor: MoviesInteractor): ViewModel()
         this.latestSearchText = changedText
         handler.removeCallbacksAndMessages(SEARCH_REQUEST_TOKEN)
 
-        val  searchRunnable = Runnable { searchRequest(changedText) }
+        val searchRunnable = Runnable { searchRequest(changedText) }
 
         val postTime = SystemClock.uptimeMillis() + SEARCH_DEBOUNCE_DELAY
         handler.postAtTime(
@@ -51,41 +53,47 @@ class NameSearchViewModel(private val interactor: MoviesInteractor): ViewModel()
         if (searchText.isNotEmpty()) {
             renderState(NameState.Loading)
 
-            interactor.searchName(searchText, object : MoviesInteractor.NameConsumer{
-                override fun consume(foundName: List<Result>?, errorMessage: String?) {
-                    val result = mutableListOf<Result>()
-
-                    if (foundName != null) {
-                        result.addAll(foundName)
+            viewModelScope.launch {
+                interactor
+                    .searchName(searchText)
+                    .collect { pair ->
+                        processResult(pair.first, pair.second)
                     }
+            }
+        }
+    }
 
-                    when {
-                        errorMessage != null -> {
-                            renderState(
-                                NameState.Error(
-                                    errorMessage = "Что-то пошло не так"
-                                )
-                            )
-                        }
+    private fun processResult(foundNames: List<Result>?, errorMessage: String?) {
+        val persons = mutableListOf<Result>()
 
-                        result.isEmpty() -> {
-                            renderState(
-                                NameState.Empty(
-                                    message = "Ничего не нашлось"
-                                )
-                            )
-                        }
+        if (foundNames != null) {
+            persons.addAll(foundNames)
+        }
 
-                        else -> {
-                            renderState(
-                                NameState.Content(
-                                    names = result
-                                )
-                            )
-                        }
-                    }
-                }
-            })
+        when {
+            errorMessage != null -> {
+                renderState(
+                    NameState.Error(
+                        errorMessage = "Что-то пошло не так"
+                    )
+                )
+            }
+
+            persons.isEmpty() -> {
+                renderState(
+                    NameState.Empty(
+                        message = "Ничего не нашлось"
+                    )
+                )
+            }
+
+            else -> {
+                renderState(
+                    NameState.Content(
+                        names = persons
+                    )
+                )
+            }
         }
     }
 

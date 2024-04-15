@@ -3,9 +3,11 @@ package com.example.moviesimdb.presentation.cast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.moviesimdb.domain.api.MoviesInteractor
 import com.example.moviesimdb.domain.models.MovieCast
 import com.example.moviesimdb.ui.models.MoviesCastState
+import kotlinx.coroutines.launch
 
 // В конструктор пробросили необходимые для запроса параметры
 class MoviesCastViewModel(
@@ -19,18 +21,18 @@ class MoviesCastViewModel(
     init {
         stateLiveData.postValue(MoviesCastState.Loading)
 
-        moviesInteractor.getMovieFullCast(movieId, object : MoviesInteractor.MoviesFullCastConsumer {
-
-            override fun consume(movieCast: MovieCast?, errorMessage: String?) {
-                if (movieCast != null) {
-                    // добавляем конвертацию в UiState
-                    stateLiveData.postValue(castToUiStateContent(movieCast))
-                } else {
-                    stateLiveData.postValue(MoviesCastState.Error(errorMessage ?: "Unknown error"))
+        viewModelScope.launch {
+            moviesInteractor
+                .getMovieFullCast(movieId)
+                .collect { pair ->
+                    if (pair.first != null) {
+                        // добавляем конвертацию в UiState
+                        stateLiveData.postValue(castToUiStateContent(pair.first!!))
+                    } else {
+                        stateLiveData.postValue(MoviesCastState.Error(pair.second ?: "Unknown error"))
+                    }
                 }
-            }
-
-        })
+        }
     }
 
     private fun castToUiStateContent(cast: MovieCast): MoviesCastState {
@@ -67,7 +69,6 @@ class MoviesCastViewModel(
             items = items
         )
     }
-
 
 
 }
